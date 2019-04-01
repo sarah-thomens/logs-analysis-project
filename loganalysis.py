@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 
 # =============================================================================
 # Logs Analysis Project
@@ -31,7 +31,10 @@ cursor = db.cursor()
 # of articles in a database limiting it to the top three articles using the
 # article_info view. Saves results to articleRecords variable.
 # -----------------------------------------------------------------------------
-cursor.execute("select title, views from article_info limit 3;")
+cursor.execute('''SELECT title,
+                         views
+               FROM article_info
+               LIMIT 3;''')
 articleRecords = cursor.fetchall()
 
 # -----------------------------------------------------------------------------
@@ -42,10 +45,11 @@ articleRecords = cursor.fetchall()
 # author name and ordering by number of views highest to lowest. Saves results
 # to authorRecords variable.
 # -----------------------------------------------------------------------------
-cursor.execute("select author, sum(views) as views"
-               + " from article_info"
-               + " group by author"
-               + " order by views desc;")
+cursor.execute('''SELECT author,
+                         sum(views) AS views
+               FROM article_info
+               GROUP BY author
+               ORDER BY views DESC;''')
 authorRecords = cursor.fetchall()
 
 # -----------------------------------------------------------------------------
@@ -55,10 +59,12 @@ authorRecords = cursor.fetchall()
 # percentage of failed requests that are greater than 1% of requests on that
 # day using the request_date view. Saves results to requestRecords variable.
 # -----------------------------------------------------------------------------
-cursor.execute("select date, (fail * 100.0 / total) as percentage"
-               + " from request_data"
-               + " where (fail * 100.0 / total) > 1;")
+cursor.execute('''SELECT TO_CHAR(date, 'Mon DD, YYYY'),
+                         round(fail * 100.0 / total, 2) AS percentage
+               FROM request_data
+               WHERE (fail * 100.0 / total) > 1;''')
 requestRecords = cursor.fetchall()
+print(requestRecords)
 
 # -Close the database----------------------------------------------------------
 db.close()
@@ -77,5 +83,4 @@ for x in authorRecords:
 print("\nDays with More Than 1% Errors")
 print("-----------------------------")
 for x in requestRecords:
-    date = x[0].strftime("%B %d, %Y")
-    print("  " + date + " -  %.1f%% errors") % (x[1])
+    print("  " + x[0] + " - " + str(x[1]) + "% errors")
